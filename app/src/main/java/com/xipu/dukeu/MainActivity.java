@@ -37,9 +37,10 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
-    private List<Message> mMessagesList;
+    private ArrayList<Message> mMessagesList;
     private String baseURL = "https://streamer.oit.duke.edu/social/messages?access_token=";
     private String API_KEY = "cdb7865937fd817b583ff5eed3554b50";//expires in 2018 December
+    private final int date_format_string_length = 10;
     //private TextView mTextView;
 
     @Override
@@ -52,8 +53,20 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mMessagesList = new ArrayList<>();
 
+        ChatBot bot = new ChatBot();
+        mMessagesList.add(new Message(bot.greeting(),"")); //display greeting on screen
+        fetchDataFromAPI();
+        mAdapter = new MyAdapter(this, mMessagesList);
+        mRecyclerView.setAdapter(mAdapter);
+    }
+
+    /**
+     *
+     */
+    private void fetchDataFromAPI(){
         String url = baseURL + API_KEY;
-        RequestQueue queue = Volley.newRequestQueue(this);
+
+        RequestQueue queue = Volley.newRequestQueue(this);//using Google volley library
 
         final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         final Calendar now = Calendar.getInstance();
@@ -62,35 +75,40 @@ public class MainActivity extends AppCompatActivity {
         int day = now.get(Calendar.DAY_OF_MONTH);
 
         final String todayDate = String.valueOf(year) + "-" + String.valueOf(month) + "-" +String.valueOf(day);
-        Log.d("date", todayDate);
-        try {
-            Date today = sdf.parse(todayDate);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
 
+        //using Google volley library to fetch a JSON array from API
         JsonArrayRequest jsArrayRequest = new JsonArrayRequest
                 (Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
 
                     @Override
                     public void onResponse(JSONArray response) {
 
-                        for(int i = 0; i < response.length(); i++)
+                        for(int i = 0; i < response.length(); i++) {
+
                             try {
+
+
                                 JSONObject newMessage = response.getJSONObject(i);
-                                String date = newMessage.getString("date_posted").substring(0,10);
-                                Log.d("DukeU", date);
+                                String date = newMessage.getString("date_posted").substring(0, date_format_string_length);
                                 try {
-                                    Log.d("format", sdf.parse(date).toString());
-                                    Log.d("format", sdf.parse(todayDate).toString());
-                                    Log.d("format", String.valueOf(sdf.parse(date).compareTo(sdf.parse(todayDate))));
+                                    //
+                                    if (sdf.parse(date).compareTo(sdf.parse(todayDate)) == 0) {
+                                        mMessagesList.add(new Message(newMessage.getString("title"), newMessage.getString("body")));
+                                    }
+                                    else{
+                                        break; //if the message fetched was posted on an earlier day, stop fetching data
+                                    }
                                 } catch (ParseException e) {
                                     e.printStackTrace();
                                 }
-                                mMessagesList.add(new Message(newMessage.getString("title"), newMessage.getString("body")));
+
+
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
+
+
+                        }
 
                     }
                 }, new Response.ErrorListener() {
@@ -101,24 +119,12 @@ public class MainActivity extends AppCompatActivity {
                         Log.d("DukeU", "There's an error while requesting JSON");
                     }
                 });
-
+        // if no new messages are added, give users information
+        if(mMessagesList.size()==1){
+            mMessagesList.add(new Message("There's no news!", "You're all caught up! Check back later..."));
+        }
         queue.add(jsArrayRequest);
-        //getInfoFromURL(baseURL+API_KEY);
-        //Log.d("DukeU",  System.currentTimeMillis()));
-        //Calendar now = Calendar.getInstance();
-        Date today = now.getTime();
-        Log.d("time", today.toString());
-        mAdapter = new MyAdapter(this, mMessagesList);
-        mRecyclerView.setAdapter(mAdapter);
     }
-
-
-
-
-
-
-
-
 
 }
 

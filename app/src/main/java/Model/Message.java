@@ -5,6 +5,7 @@ import android.text.format.Time;
 
 /**
  * Created by xipu on 1/18/18.
+ * A model class for message
  */
 
 public class Message implements Comparable<Message>{
@@ -46,6 +47,10 @@ public class Message implements Comparable<Message>{
         isRead = read;
     }
 
+    @Override
+    public String toString(){
+        return title;
+    }
 
     @Override
     public int compareTo(@NonNull Message o) {

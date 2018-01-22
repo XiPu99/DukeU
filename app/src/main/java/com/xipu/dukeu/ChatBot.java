@@ -1,9 +1,24 @@
 package com.xipu.dukeu;
 
+import android.util.Log;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.PriorityQueue;
 
 import Model.Message;
@@ -18,7 +33,13 @@ import Model.Message;
 public class ChatBot {
 
     private int pos;
-    private PriorityQueue<Message> mMessages;
+    private ArrayList<Message> mMessages;
+    private final String baseURL = "https://streamer.oit.duke.edu/social/messages?access_token=";
+    private final String API_KEY = "cdb7865937fd817b583ff5eed3554b50";//expires in 2018 December
+
+    private ChatBot() {
+        //System.out.println(greeting());
+    }
 
     public String greeting(){
         Calendar now = Calendar.getInstance();
@@ -35,17 +56,10 @@ public class ChatBot {
         }
     }
 
-//    public boolean reachEnd(){
-//
-//    }
-
-    private void getMessages(){
-
-    }
 
 
     // retrieve current date
-    private Calendar getTodayDate() throws ParseException {
+    public Calendar getTodayDate() throws ParseException {
         Calendar now = Calendar.getInstance();
         int year = now.get(Calendar.YEAR);
         int month = now.get(Calendar.MONTH);
@@ -56,6 +70,5 @@ public class ChatBot {
         now.setTime(sdf.parse(date));
         return now;
     }
-
     
 }
