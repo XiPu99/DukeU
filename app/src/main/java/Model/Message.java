@@ -8,19 +8,16 @@ import android.text.format.Time;
  * A model class for message
  */
 
-public class Message implements Comparable<Message>{
+public class Message {
     private String title;
     private String body;
-    private Time date_posted;
-    private boolean isRead;
+    private boolean isBot;
 
-    public Message(){
-
-    }
 
     public Message(String title, String body){
         this.title = title;
         this.body = body;
+        isBot = true;
     }
 
     public String getTitle() {
@@ -39,12 +36,12 @@ public class Message implements Comparable<Message>{
         this.body = body;
     }
 
-    public boolean isRead() {
-        return isRead;
+    public boolean isBot() {
+        return isBot;
     }
 
-    public void setRead(boolean read) {
-        isRead = read;
+    public void setIsBot(boolean bot) {
+        bot = isBot;
     }
 
     @Override
@@ -52,8 +49,4 @@ public class Message implements Comparable<Message>{
         return title;
     }
 
-    @Override
-    public int compareTo(@NonNull Message o) {
-        return Time.compare(this.date_posted, o.date_posted);
-    }
 }

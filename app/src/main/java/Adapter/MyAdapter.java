@@ -10,6 +10,8 @@ import android.widget.TextView;
 
 import com.xipu.dukeu.R;
 
+import org.w3c.dom.Text;
+
 import java.util.List;
 
 import Model.Message;
@@ -18,29 +20,60 @@ import Model.Message;
  * Created by xipu on 1/18/18.
  */
 
-public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
+public class MyAdapter extends RecyclerView.Adapter{
+    private static final int MESSAGE_SENT_BY_BOT = 0;
+    private static final int MESSAGE_SENT_BY_USER = 1;
 
     private Context mContext;
     private List<Message> mMessageList;
 
-    public MyAdapter(Context context, List listItem){
+
+    public MyAdapter(Context context, List<Message> messageList){
+        mMessageList = messageList;
         mContext = context;
-        mMessageList = listItem;
-    }
-
-
-
-    @Override
-    public MyAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.message, parent, false);
-        return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(MyAdapter.ViewHolder holder, int position) {
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view;
+
+        if(viewType==MESSAGE_SENT_BY_BOT){
+            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.bot_message, parent, false);
+            return new Bot_Message_ViewHolder(view);
+        }
+        else{
+            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.user_message, parent, false);
+            return new User_Message_ViewHolder(view);
+        }
+
+    }
+
+    @Override
+    public int getItemViewType(int position) {
         Message message = mMessageList.get(position);
-        holder.title.setText(message.getTitle());
-        holder.body.setText(message.getBody());
+
+        if(message.isBot()){
+            return MESSAGE_SENT_BY_BOT;
+        }
+        else{
+            return MESSAGE_SENT_BY_USER;
+        }
+
+    }
+
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        Message message = mMessageList.get(position);
+
+        switch (holder.getItemViewType()){
+            case MESSAGE_SENT_BY_BOT:
+                ((Bot_Message_ViewHolder) holder).bind(message);
+                break;
+            case MESSAGE_SENT_BY_USER:
+                ((User_Message_ViewHolder) holder).bind(message);
+
+        }
+
     }
 
     @Override
@@ -48,18 +81,86 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         return mMessageList.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder{
+
+    // viewholder class for bot message
+    public class Bot_Message_ViewHolder extends RecyclerView.ViewHolder{
+
+        public TextView title;
+        public TextView body;
+
+        public Bot_Message_ViewHolder(View itemView) {
+            super(itemView);
+            title = itemView.findViewById(R.id.bot_text_message_body);
+        }
+
+        void bind(Message message){
+            title.setText(message.getTitle());
+        }
+    }
+
+    // viewholder class for user's message
+    public class User_Message_ViewHolder extends RecyclerView.ViewHolder{
 
         private TextView title;
         private TextView body;
 
-
-        public ViewHolder(View itemView) {
+        public User_Message_ViewHolder(View itemView){
             super(itemView);
-
-            title = (TextView) itemView.findViewById(R.id.title);
-            body = (TextView) itemView.findViewById(R.id.body);
-
+            title = itemView.findViewById(R.id.text_message_body);
         }
+
+        void bind(Message message){
+            title.setText(message.getTitle());
+        }
+
     }
+
 }
+
+
+
+//public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
+//
+//    private Context mContext;
+//    private List<Message> mMessageList;
+//
+//    public MyAdapter(Context context, List messageList){
+//        mContext = context;
+//        mMessageList = messageList;
+//    }
+//
+//
+//
+//    @Override
+//    public MyAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+//        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.message, parent, false);
+//        return new ViewHolder(view);
+//    }
+//
+//    @Override
+//    public void onBindViewHolder(MyAdapter.ViewHolder holder, int position) {
+//        Message message = mMessageList.get(position);
+//        holder.title.setText(message.getTitle());
+//        holder.body.setText(message.getBody());
+//    }
+//
+//    @Override
+//    public int getItemCount() {
+//        return mMessageList.size();
+//    }
+//
+//    public class Bot_Message_ViewHolder extends RecyclerView.ViewHolder{
+//
+//        private TextView title;
+//        private TextView body;
+//
+//
+//        public ViewHolder(View itemView) {
+//            super(itemView);
+//
+//            title = (TextView) itemView.findViewById(R.id.title);
+//            body = (TextView) itemView.findViewById(R.id.body);
+//
+//        }
+//    }
+//}

@@ -13,6 +13,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.wang.avi.AVLoadingIndicatorView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
-    private ArrayList<Message> mMessagesList;
+    private List<Message> mMessagesList;
     private String baseURL = "https://streamer.oit.duke.edu/social/messages?access_token=";
     private String API_KEY = "cdb7865937fd817b583ff5eed3554b50";//expires in 2018 December
     private final int date_format_string_length = 10;
@@ -56,8 +57,10 @@ public class MainActivity extends AppCompatActivity {
         ChatBot bot = new ChatBot();
         mMessagesList.add(new Message(bot.greeting(),"")); //display greeting on screen
         fetchDataFromAPI();
+        //AVLoadingIndicatorView avi = findViewById(R.id.avi1);
         mAdapter = new MyAdapter(this, mMessagesList);
         mRecyclerView.setAdapter(mAdapter);
+        //avi.smoothToShow();
     }
 
     /**

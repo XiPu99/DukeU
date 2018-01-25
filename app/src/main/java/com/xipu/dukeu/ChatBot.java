@@ -37,7 +37,7 @@ public class ChatBot {
     private final String baseURL = "https://streamer.oit.duke.edu/social/messages?access_token=";
     private final String API_KEY = "cdb7865937fd817b583ff5eed3554b50";//expires in 2018 December
 
-    private ChatBot() {
+    public ChatBot() {
         //System.out.println(greeting());
     }
 
@@ -55,7 +55,6 @@ public class ChatBot {
             return "Good evening!";
         }
     }
-
 
 
     // retrieve current date
