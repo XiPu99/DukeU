@@ -4,8 +4,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerViewAccessibilityDelegate;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -13,7 +15,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
-import com.wang.avi.AVLoadingIndicatorView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,9 +22,8 @@ import org.json.JSONObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 import Adapter.MyAdapter;
@@ -38,29 +38,46 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
-    private List<Message> mMessagesList;
+    private LinkedList<Message> allMessagesList;
+    private List<Message> mMessageList;
     private String baseURL = "https://streamer.oit.duke.edu/social/messages?access_token=";
     private String API_KEY = "cdb7865937fd817b583ff5eed3554b50";//expires in 2018 December
     private final int date_format_string_length = 10;
-    //private TextView mTextView;
+    private TextView nextButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //nextButton = findViewById(R.id.nextButton);
         mRecyclerView = findViewById(R.id.recyclerViewID);
         mRecyclerView.setHasFixedSize(true); //potential bug
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mMessagesList = new ArrayList<>();
+        allMessagesList = new LinkedList<>();
+        mMessageList = new LinkedList<>();
 
         ChatBot bot = new ChatBot();
-        mMessagesList.add(new Message(bot.greeting(),"")); //display greeting on screen
+        allMessagesList.add(new Message(bot.greeting(),"")); //display greeting on screen
         fetchDataFromAPI();
         //AVLoadingIndicatorView avi = findViewById(R.id.avi1);
-        mAdapter = new MyAdapter(this, mMessagesList);
+        getMessageOneByOne();
+        mAdapter = new MyAdapter(this, mMessageList);
         mRecyclerView.setAdapter(mAdapter);
         //avi.smoothToShow();
+
+//        mButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                allMessagesList.add(new Message("Test", ""));
+//                mAdapter.notifyDataSetChanged();
+////                allMessagesList.clear();
+////                allMessagesList.add(new Message("test", ""));
+////                RecyclerView.Adapter mNewAdapter = new MyAdapter(getApplicationContext(), allMessagesList);
+////                mRecyclerView.setAdapter( mNewAdapter);
+//            }
+//        });
+
     }
 
     /**
@@ -94,9 +111,11 @@ public class MainActivity extends AppCompatActivity {
                                 JSONObject newMessage = response.getJSONObject(i);
                                 String date = newMessage.getString("date_posted").substring(0, date_format_string_length);
                                 try {
-                                    //
+                                    //if the message is posted on today, add it to mMessageList
                                     if (sdf.parse(date).compareTo(sdf.parse(todayDate)) == 0) {
-                                        mMessagesList.add(new Message(newMessage.getString("title"), newMessage.getString("body")));
+                                        Message nMessage = new Message(newMessage.getString("title"), newMessage.getString("body"));
+                                        nMessage.setUrl(newMessage.getString("source_url"));
+                                        allMessagesList.add(nMessage);
                                     }
                                     else{
                                         break; //if the message fetched was posted on an earlier day, stop fetching data
@@ -123,11 +142,43 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
         // if no new messages are added, give users information
-        if(mMessagesList.size()==1){
-            mMessagesList.add(new Message("There's no news!", "You're all caught up! Check back later..."));
+        if(allMessagesList.size()==1){
+            allMessagesList.add(new Message("There's no news!", "You're all caught up! Check back later..."));
         }
         queue.add(jsArrayRequest);
     }
+
+    //on click method for nextButton textview
+    public void getNextMessage(View v){
+        Log.d("DukeU", "Text was clicked.");
+        v.setVisibility(View.INVISIBLE);
+        if(!allMessagesList.isEmpty()) {
+            mMessageList.add(allMessagesList.remove());
+        }
+        mMessageList.add(new Message("Test",""));
+        mAdapter.notifyDataSetChanged();
+    }
+
+
+    private void getMessageOneByOne(){
+        int size = allMessagesList.size();
+
+        if(size<=2){
+            for(int i = 0; i < size; i++){
+                mMessageList.add(allMessagesList.remove());
+            }
+        }
+        else{
+            for(int i = 0; i < 3; i++){
+                mMessageList.add(allMessagesList.remove());
+            }
+
+        }
+
+    }
+
+
+
 
 }
 

@@ -12,6 +12,7 @@ public class Message {
     private String title;
     private String body;
     private boolean isBot;
+    private String url;
 
 
     public Message(String title, String body){
@@ -49,4 +50,11 @@ public class Message {
         return title;
     }
 
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
 }
