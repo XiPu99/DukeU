@@ -48,7 +48,7 @@ public class ChatBot {
         if(hour_of_day>=6&&hour_of_day<13){
             return "Good Morning!";
         }
-        else if(hour_of_day>=13&&hour_of_day<6){
+        else if(hour_of_day>=13&&hour_of_day<18){
             return "Good afternoon!";
         }
         else{

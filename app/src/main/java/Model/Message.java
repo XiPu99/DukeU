@@ -14,6 +14,10 @@ public class Message {
     private boolean isBot;
     private String url;
 
+    public Message(String title){
+        this.title = title;
+        isBot = true;
+    }
 
     public Message(String title, String body){
         this.title = title;
@@ -42,7 +46,7 @@ public class Message {
     }
 
     public void setIsBot(boolean bot) {
-        bot = isBot;
+        this.isBot = bot;
     }
 
     @Override

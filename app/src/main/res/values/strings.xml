@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">DukeU</string>
     <string name="search_hint">Search your classs here</string>
+    <string name="hi">Hi man, How are you?</string>
 </resources>

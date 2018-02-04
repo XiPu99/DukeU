@@ -5,41 +5,67 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@android:color/holo_blue_dark"
     tools:context="com.xipu.dukeu.MainActivity">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerViewID"
-        android:layout_width="411dp"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/colorAccent"
         android:scrollbars="vertical"
-        tools:layout_editor_absoluteX="81dp"
-        tools:layout_editor_absoluteY="172dp"/>
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:layout_editor_absoluteX="0dp"/>
 
-    <TextView
+    <!--<TextView-->
+        <!--android:id="@+id/nextButton"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_alignParentLeft="false"-->
+        <!--android:layout_alignParentStart="false"-->
+        <!--android:layout_alignParentTop="false"-->
+        <!--android:clickable="true"-->
+        <!--android:onClick="getNextMessage"-->
+        <!--android:text="Next"-->
+        <!--tools:layout_editor_absoluteX="117dp"-->
+        <!--tools:layout_editor_absoluteY="405dp"/>-->
+
+    <!--<TextView-->
+        <!--android:id="@+id/textView4"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_alignBottom="@+id/nextButton"-->
+        <!--android:layout_alignEnd="@+id/nextButton"-->
+        <!--android:layout_alignRight="@+id/nextButton"-->
+        <!--android:clickable="true"-->
+        <!--android:onClick="getMoreInfo"-->
+        <!--android:text="Interesting"-->
+        <!--tools:layout_editor_absoluteX="242dp"-->
+        <!--tools:layout_editor_absoluteY="408dp"/>-->
+
+    <Button
         android:id="@+id/nextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="false"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentRight="false"
         android:layout_alignParentStart="false"
         android:layout_alignParentTop="false"
-        android:layout_marginLeft="160dp"
-        android:layout_marginTop="450dp"
+        android:layout_centerHorizontal="false"
+        android:layout_marginStart="90dp"
         android:onClick="getNextMessage"
-        android:clickable="true"
-        android:text="Next"/>
+        android:text="Next"
+        tools:layout_alignParentRight="false"
+        tools:layout_editor_absoluteX="174dp"
+        tools:layout_editor_absoluteY="293dp"/>
 
-    <TextView
-        android:id="@+id/textView4"
+    <Button
+        android:id="@+id/moreInfoButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/nextButton"
-        android:layout_alignEnd="@+id/nextButton"
-        android:layout_alignRight="@+id/nextButton"
-        android:layout_marginBottom="117dp"
-        android:layout_marginEnd="42dp"
-        android:layout_marginRight="42dp"
-        android:text="Interesting"/>
+        android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@+id/nextButton"
+        android:onClick="getMoreInfo"
+        android:text="Tell me more"/>
 
 </android.widget.RelativeLayout>
