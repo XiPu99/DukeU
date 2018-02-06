@@ -57,17 +57,10 @@ public class ChatBot {
     }
 
 
-    // retrieve current date
-    public Calendar getTodayDate() throws ParseException {
-        Calendar now = Calendar.getInstance();
-        int year = now.get(Calendar.YEAR);
-        int month = now.get(Calendar.MONTH);
-        int day = now.get(Calendar.DAY_OF_MONTH);
-        now.set(year, month, day);
-        String date = "2018-01-20";
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        now.setTime(sdf.parse(date));
-        return now;
+    //give options for users to choose
+    public String response(){
+
+        return "";
     }
     
 }

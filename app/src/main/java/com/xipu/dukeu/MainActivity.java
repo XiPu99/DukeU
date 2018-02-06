@@ -8,6 +8,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -17,6 +20,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.wang.avi.AVLoadingIndicatorView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -67,10 +71,43 @@ public class MainActivity extends AppCompatActivity {
         ChatBot bot = new ChatBot();
         mMessageList.add(new Message(bot.greeting(),""));
         fetchDataFromAPI();
-        //AVLoadingIndicatorView avi = findViewById(R.id.avi1);
         mAdapter = new MyAdapter(this, mMessageList);
         mRecyclerView.setAdapter(mAdapter);
-        //avi.smoothToShow();
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                boolean isBottomReached = recyclerView.canScrollVertically(1);
+
+                if ( dy>0){
+                    //scroll down
+                    if(nextButton.isShown()){
+//                        Animation a = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide);
+//                        a.reset();
+//                        nextButton.clearAnimation();
+//                        nextButton.startAnimation(a);
+                        nextButton.setVisibility(View.GONE);
+                        moreInfoButton.setVisibility(View.GONE);
+                    }
+                }
+                else if (dy <0) {
+                    // Scroll Up
+                    if (nextButton.isShown()) {
+                        nextButton.setVisibility(View.GONE);
+                        moreInfoButton.setVisibility(View.GONE);
+                    }
+                }
+
+                if(!isBottomReached){
+                    nextButton.setVisibility(View.VISIBLE);
+                    moreInfoButton.setVisibility(View.VISIBLE);
+                }
+            }
+
+
+        });
+
 
     }
 

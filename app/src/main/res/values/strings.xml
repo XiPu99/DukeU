@@ -1,5 +1,14 @@
 <resources>
     <string name="app_name">DukeU</string>
-    <string name="search_hint">Search your classs here</string>
-    <string name="hi">Hi man, How are you?</string>
+    <string name="hi">Hi man, How are you? This is a very long text....very very long text</string>
+    <string name="search_hint">search your class here</string>
+    <string-array name="moreInfoResponse">
+        <item>Interesting!</item>
+        <item>Tell me more.</item>
+        <item>And?</item>
+    </string-array>
+    <string-array name="nextResponse">
+        <item>Next</item>
+        <item>Anything else?</item>
+    </string-array>
 </resources>
