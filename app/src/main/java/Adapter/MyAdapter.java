@@ -6,6 +6,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
 import com.xipu.dukeu.R;
@@ -26,6 +28,7 @@ public class MyAdapter extends RecyclerView.Adapter{
 
     private Context mContext;
     private List<Message> mMessageList;
+    private int lastPosition = -1;
 
 
     public MyAdapter(Context context, List<Message> messageList){
@@ -68,10 +71,20 @@ public class MyAdapter extends RecyclerView.Adapter{
         switch (holder.getItemViewType()){
             case MESSAGE_SENT_BY_BOT:
                 ((Bot_Message_ViewHolder) holder).bind(message);
+                setAnimation(holder.itemView, position);
                 break;
             case MESSAGE_SENT_BY_USER:
                 ((User_Message_ViewHolder) holder).bind(message);
 
+        }
+
+    }
+
+    private void setAnimation(View viewToAnimate, int position){
+        if(position>lastPosition){
+            Animation slideInLeft = AnimationUtils.loadAnimation(mContext, R.anim.slide_in_left);
+            viewToAnimate.startAnimation(slideInLeft);
+            lastPosition = position;
         }
 
     }

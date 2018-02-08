@@ -8,11 +8,11 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
-import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -20,7 +20,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
-import com.wang.avi.AVLoadingIndicatorView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,6 +33,10 @@ import java.util.List;
 
 import Adapter.MyAdapter;
 import Model.Message;
+import it.gmariotti.recyclerview.adapter.AlphaAnimatorAdapter;
+import it.gmariotti.recyclerview.adapter.SlideInLeftAnimatorAdapter;
+import it.gmariotti.recyclerview.itemanimator.SlideInOutLeftItemAnimator;
+import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
 
 /**
  * created on Dec 26, 2017
@@ -54,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private Message currentMessage;
     private final Message next = new Message("Next");
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,44 +71,118 @@ public class MainActivity extends AppCompatActivity {
         allMessagesList = new LinkedList<>();
         mMessageList = new LinkedList<>();
         next.setIsBot(false);
+        mRecyclerView.setNestedScrollingEnabled(false);
 
         ChatBot bot = new ChatBot();
         mMessageList.add(new Message(bot.greeting(),""));
         fetchDataFromAPI();
         mAdapter = new MyAdapter(this, mMessageList);
         mRecyclerView.setAdapter(mAdapter);
+        Animation slide_up = AnimationUtils.loadAnimation(this, R.anim.slide_up);
+        slide_up.reset();
+        nextButton.startAnimation(slide_up);
+        moreInfoButton.startAnimation(slide_up);
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
 
                 boolean isBottomReached = recyclerView.canScrollVertically(1);
+                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
+                Animation slide_down = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_down);
+                slide_up.reset();
+                slide_down.reset();
 
-                if ( dy>0){
-                    //scroll down
+
+
+                if(dy==0){
                     if(nextButton.isShown()){
-//                        Animation a = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide);
-//                        a.reset();
-//                        nextButton.clearAnimation();
-//                        nextButton.startAnimation(a);
-                        nextButton.setVisibility(View.GONE);
-                        moreInfoButton.setVisibility(View.GONE);
-                    }
-                }
-                else if (dy <0) {
-                    // Scroll Up
-                    if (nextButton.isShown()) {
-                        nextButton.setVisibility(View.GONE);
-                        moreInfoButton.setVisibility(View.GONE);
+                        slide_down.setAnimationListener(new Animation.AnimationListener() {
+                            @Override
+                            public void onAnimationStart(Animation animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animation animation) {
+                                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
+                                nextButton.clearAnimation();
+                                moreInfoButton.clearAnimation();
+                                nextButton.startAnimation(slide_up);
+                                moreInfoButton.startAnimation(slide_up);
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animation animation) {
+
+                            }
+                        });
+                        slide_down.reset();
+                        nextButton.clearAnimation();
+                        moreInfoButton.clearAnimation();
+                        nextButton.startAnimation(slide_down);
+                        moreInfoButton.startAnimation(slide_down);
                     }
                 }
 
                 if(!isBottomReached){
-                    nextButton.setVisibility(View.VISIBLE);
-                    moreInfoButton.setVisibility(View.VISIBLE);
-                }
-            }
 
+                    if(!nextButton.isShown()){
+                        nextButton.setVisibility(View.VISIBLE);
+                        moreInfoButton.setVisibility(View.VISIBLE);
+                        nextButton.clearAnimation();
+                        moreInfoButton.clearAnimation();
+                        nextButton.startAnimation(slide_up);
+                        moreInfoButton.startAnimation(slide_up);
+                    }
+                    return;
+                }
+
+                if ( dy>0){
+                    //scroll down
+                    if(nextButton.isShown()){
+                        slide_down.setAnimationListener(new Animation.AnimationListener() {
+                            @Override
+                            public void onAnimationStart(Animation animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animation animation) {
+                                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
+                                //nextButton.clearAnimation();
+                                //moreInfoButton.clearAnimation();
+                                nextButton.startAnimation(slide_up);
+                                moreInfoButton.startAnimation(slide_up);
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animation animation) {
+
+                            }
+                        });
+                        slide_down.reset();
+                        nextButton.clearAnimation();
+                        moreInfoButton.clearAnimation();
+                        nextButton.startAnimation(slide_down);
+                        moreInfoButton.startAnimation(slide_down);
+                    }
+                }
+
+                else if(dy<0){
+                    //Scroll up
+                    if (nextButton.isShown()) {
+                        nextButton.clearAnimation();
+                        moreInfoButton.clearAnimation();
+                        nextButton.startAnimation(slide_down);
+                        moreInfoButton.startAnimation(slide_down);
+                        nextButton.setVisibility(View.INVISIBLE);
+                        moreInfoButton.setVisibility(View.INVISIBLE);
+                    }
+                }
+
+
+            }
 
         });
 
@@ -113,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     /**
-     *  todo: add a counter variable to keep track of the size of linkedlist
+     *  add all messages fetched from the Internet to linkedlist allMessagesList
      */
     private void fetchDataFromAPI(){
         String url = baseURL + API_KEY;
@@ -142,13 +220,13 @@ public class MainActivity extends AppCompatActivity {
                                 String date = newMessage.getString("date_posted").substring(0, date_format_string_length);
                                 try {
                                     //if the message is posted on today, add it to mMessageList
-                                    if (sdf.parse(date).compareTo(sdf.parse(todayDate)) == 0) {
+                                    if (sdf.parse(date).compareTo(sdf.parse(todayDate)) == 0||sdf.parse(todayDate).before(sdf.parse(date))) {
                                         Message nMessage = new Message(newMessage.getString("title"), newMessage.getString("body"));
                                         nMessage.setUrl(newMessage.getString("source_url"));
                                         if(i==0){
                                             currentMessage = nMessage;
                                             mMessageList.add(nMessage);
-                                            mAdapter.notifyDataSetChanged();
+                                            mAdapter.notifyItemInserted(mMessageList.size()-1);
                                         }
                                         else {
                                             allMessagesList.add(nMessage);
@@ -161,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
                                 } catch (ParseException e) {
                                     e.printStackTrace();
                                 }
-                                Log.d("DukeU", "Size:" + allMessagesList.size());
+
 
                             } catch (JSONException e) {
                                 e.printStackTrace();
@@ -191,13 +269,40 @@ public class MainActivity extends AppCompatActivity {
         }
         else{
             currentMessage = null;
-            nextButton.setVisibility(View.INVISIBLE);
-            moreInfoButton.setVisibility(View.INVISIBLE);
+            nextButton.setVisibility(View.GONE);
+            moreInfoButton.setVisibility(View.GONE);
             Message test = new Message("You're all caught up! Check back later...");
             mMessageList.add(test);
         }
+        if(!moreInfoButton.isShown()){
+            moreInfoButton.setVisibility(View.VISIBLE);
+        }
+        Animation slide_down = AnimationUtils.loadAnimation(this, R.anim.slide_down);
+        slide_down.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
+                nextButton.startAnimation(slide_up);
+                moreInfoButton.startAnimation(slide_up);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+        slide_down.reset();
+        nextButton.startAnimation(slide_down);
+        moreInfoButton.startAnimation(slide_down);
+
         mRecyclerView.smoothScrollToPosition(mMessageList.size()-1);
-        mAdapter.notifyDataSetChanged();
+        mAdapter.notifyItemInserted(mMessageList.size()-1);
+
     }
 
     //on click method when user request more information
@@ -209,13 +314,13 @@ public class MainActivity extends AppCompatActivity {
         Message response = new Message(b.getText().toString());
         response.setIsBot(false);
         mMessageList.add(response);
-        //mMessageList.add(new Message(currentMessage.getBody(),""));
         mMessageList.add(new Message(currentMessage.getUrl()));
         Uri uri = Uri.parse(currentMessage.getUrl());
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         startActivity(intent);
         mRecyclerView.smoothScrollToPosition(mMessageList.size()-1);
-        mAdapter.notifyDataSetChanged();
+        moreInfoButton.setVisibility(View.GONE);
+        mAdapter.notifyItemInserted(mMessageList.size()-1);
     }
 
 
