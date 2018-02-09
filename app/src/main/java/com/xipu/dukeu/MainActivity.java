@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Layout;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
@@ -13,6 +14,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
+import android.widget.LinearLayout;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -55,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private Button nextButton;
     private Button moreInfoButton;
     private Message currentMessage;
+    private LinearLayout mLinearLayout;
     private final Message next = new Message("Next");
 
 
@@ -63,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mLinearLayout = findViewById(R.id.linearLayout);
         nextButton = findViewById(R.id.nextButton);
         moreInfoButton = findViewById(R.id.moreInfoButton);
         mRecyclerView = findViewById(R.id.recyclerViewID);
@@ -93,47 +97,13 @@ public class MainActivity extends AppCompatActivity {
                 slide_up.reset();
                 slide_down.reset();
 
-
-
-                if(dy==0){
-                    if(nextButton.isShown()){
-                        slide_down.setAnimationListener(new Animation.AnimationListener() {
-                            @Override
-                            public void onAnimationStart(Animation animation) {
-
-                            }
-
-                            @Override
-                            public void onAnimationEnd(Animation animation) {
-                                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
-                                nextButton.clearAnimation();
-                                moreInfoButton.clearAnimation();
-                                nextButton.startAnimation(slide_up);
-                                moreInfoButton.startAnimation(slide_up);
-                            }
-
-                            @Override
-                            public void onAnimationRepeat(Animation animation) {
-
-                            }
-                        });
-                        slide_down.reset();
-                        nextButton.clearAnimation();
-                        moreInfoButton.clearAnimation();
-                        nextButton.startAnimation(slide_down);
-                        moreInfoButton.startAnimation(slide_down);
-                    }
-                }
-
                 if(!isBottomReached){
 
                     if(!nextButton.isShown()){
-                        nextButton.setVisibility(View.VISIBLE);
-                        moreInfoButton.setVisibility(View.VISIBLE);
-                        nextButton.clearAnimation();
-                        moreInfoButton.clearAnimation();
-                        nextButton.startAnimation(slide_up);
-                        moreInfoButton.startAnimation(slide_up);
+                        Log.d("Anim", "not shown executed.");
+                        mLinearLayout.clearAnimation();
+                        mLinearLayout.startAnimation(slide_up);
+                        mLinearLayout.setVisibility(View.VISIBLE);
                     }
                     return;
                 }
@@ -141,51 +111,42 @@ public class MainActivity extends AppCompatActivity {
                 if ( dy>0){
                     //scroll down
                     if(nextButton.isShown()){
+                        Log.d("Anim", "scrolling down.");
                         slide_down.setAnimationListener(new Animation.AnimationListener() {
                             @Override
                             public void onAnimationStart(Animation animation) {
-
+                                //do nothing
                             }
 
                             @Override
                             public void onAnimationEnd(Animation animation) {
                                 Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
-                                //nextButton.clearAnimation();
-                                //moreInfoButton.clearAnimation();
-                                nextButton.startAnimation(slide_up);
-                                moreInfoButton.startAnimation(slide_up);
+                                mLinearLayout.clearAnimation();
+                                mLinearLayout.startAnimation(slide_up);
                             }
 
                             @Override
                             public void onAnimationRepeat(Animation animation) {
-
+                                //do nothing
                             }
                         });
-                        slide_down.reset();
-                        nextButton.clearAnimation();
-                        moreInfoButton.clearAnimation();
-                        nextButton.startAnimation(slide_down);
-                        moreInfoButton.startAnimation(slide_down);
+                        mLinearLayout.startAnimation(slide_down);
                     }
                 }
 
                 else if(dy<0){
                     //Scroll up
                     if (nextButton.isShown()) {
-                        nextButton.clearAnimation();
-                        moreInfoButton.clearAnimation();
-                        nextButton.startAnimation(slide_down);
-                        moreInfoButton.startAnimation(slide_down);
-                        nextButton.setVisibility(View.INVISIBLE);
-                        moreInfoButton.setVisibility(View.INVISIBLE);
+                        Log.d("Anim", "scrolling up.");
+                        mLinearLayout.clearAnimation();
+                        mLinearLayout.startAnimation(slide_down);
+                        mLinearLayout.setVisibility(View.INVISIBLE);
                     }
                 }
-
 
             }
 
         });
-
 
     }
 
@@ -274,36 +235,35 @@ public class MainActivity extends AppCompatActivity {
             Message test = new Message("You're all caught up! Check back later...");
             mMessageList.add(test);
         }
-        if(!moreInfoButton.isShown()){
-            moreInfoButton.setVisibility(View.VISIBLE);
-        }
+
+
         Animation slide_down = AnimationUtils.loadAnimation(this, R.anim.slide_down);
+        if(!moreInfoButton.isShown()){
+            nextButton.startAnimation(slide_down);
+        }
         slide_down.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
-
+                //do nothing
             }
 
             @Override
             public void onAnimationEnd(Animation animation) {
                 Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
-                nextButton.startAnimation(slide_up);
-                moreInfoButton.startAnimation(slide_up);
+                if(!moreInfoButton.isShown()) moreInfoButton.setVisibility(View.VISIBLE);
+                mLinearLayout.startAnimation(slide_up);
             }
 
             @Override
             public void onAnimationRepeat(Animation animation) {
-
+                //do nothing
             }
         });
-        slide_down.reset();
-        nextButton.startAnimation(slide_down);
-        moreInfoButton.startAnimation(slide_down);
-
         mRecyclerView.smoothScrollToPosition(mMessageList.size()-1);
         mAdapter.notifyItemInserted(mMessageList.size()-1);
-
+        mLinearLayout.startAnimation(slide_down);
     }
+
 
     //on click method when user request more information
     public void getMoreInfo(View v){
@@ -322,7 +282,6 @@ public class MainActivity extends AppCompatActivity {
         moreInfoButton.setVisibility(View.GONE);
         mAdapter.notifyItemInserted(mMessageList.size()-1);
     }
-
 
 
 }

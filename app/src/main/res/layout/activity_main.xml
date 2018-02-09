@@ -5,40 +5,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@color/Gray"
+    android:background="@color/lightGray"
+    android:clipChildren="false"
+    android:clipToPadding="false"
     tools:context="com.xipu.dukeu.MainActivity">
-
-    <Button
-        android:id="@+id/nextButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/recyclerViewID"
-        android:layout_alignParentBottom="false"
-        android:layout_alignParentStart="false"
-        android:layout_marginBottom="20dp"
-        android:layout_marginLeft="89dp"
-        android:layout_marginStart="89dp"
-        android:background="@drawable/chat_bubble"
-        android:onClick="getNextMessage"
-        android:text="Next"
-        android:textIsSelectable="false"
-        tools:layout_alignParentRight="false"
-        tools:layout_editor_absoluteX="174dp"
-        tools:layout_editor_absoluteY="293dp"/>
-
-    <Button
-        android:id="@+id/moreInfoButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-
-        android:layout_alignBottom="@+id/nextButton"
-        android:layout_alignParentBottom="false"
-        android:layout_marginBottom="00dp"
-        android:layout_toEndOf="@+id/nextButton"
-        android:layout_toRightOf="@+id/nextButton"
-        android:background="@drawable/chat_bubble"
-        android:onClick="getMoreInfo"
-        android:text="Tell me more"/>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerViewID"
@@ -48,14 +18,72 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_marginBottom="0dp"
-        android:background="@color/Gray"
+        android:background="@color/lightGray"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:overScrollMode="never"
         android:paddingBottom="80dp"
         android:scrollbars="vertical"
-        android:clipToPadding="false"
         tools:layout_editor_absoluteX="0dp">
 
     </android.support.v7.widget.RecyclerView>
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/recyclerViewID"
+        android:layout_alignParentBottom="false"
+        android:layout_centerHorizontal="false"
+        android:layout_centerInParent="true"
+        android:layout_centerVertical="false"
+        android:layout_marginBottom="20dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/nextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/recyclerViewID"
+            android:layout_alignParentBottom="false"
+            android:layout_alignParentStart="false"
+            android:layout_centerInParent="true"
+            android:layout_marginLeft="95dp"
+            android:layout_marginStart="0dp"
+            android:autoSizeMaxTextSize="56sp"
+            android:autoSizeMinTextSize="12sp"
+            android:autoText="false"
+            android:background="@drawable/user_chat_bubble"
+            android:fadingEdge="horizontal"
+            android:onClick="getNextMessage"
+            android:text="Next"
+            android:textColor="@android:color/white"
+            android:textIsSelectable="false"
+            tools:layout_alignParentRight="false"
+            tools:layout_editor_absoluteX="174dp"
+            tools:layout_editor_absoluteY="293dp"/>
+
+        <Button
+            android:id="@+id/moreInfoButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_alignBaseline="@+id/nextButton"
+            android:layout_alignBottom="@+id/nextButton"
+            android:layout_marginLeft="22dp"
+            android:layout_marginStart="22dp"
+            android:layout_toEndOf="@+id/nextButton"
+            android:layout_toRightOf="@+id/nextButton"
+            android:layout_weight="1"
+            android:autoSizeMaxTextSize="56sp"
+            android:autoSizeMinTextSize="12sp"
+            android:background="@drawable/user_chat_bubble"
+            android:onClick="getMoreInfo"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:text="Tell me more"
+            android:textColor="@android:color/white"/>
+    </LinearLayout>
 
 
 </android.widget.RelativeLayout>
