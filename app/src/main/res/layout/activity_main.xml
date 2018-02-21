@@ -52,11 +52,11 @@
             android:layout_marginStart="0dp"
             android:autoSizeMaxTextSize="56sp"
             android:autoSizeMinTextSize="12sp"
-            android:autoText="false"
             android:background="@drawable/user_chat_bubble"
             android:fadingEdge="horizontal"
             android:onClick="getNextMessage"
             android:text="Next"
+            android:textAllCaps="false"
             android:textColor="@android:color/white"
             android:textIsSelectable="false"
             tools:layout_alignParentRight="false"
@@ -67,7 +67,6 @@
             android:id="@+id/moreInfoButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-
             android:layout_alignBaseline="@+id/nextButton"
             android:layout_alignBottom="@+id/nextButton"
             android:layout_marginLeft="22dp"
@@ -82,7 +81,9 @@
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:text="Tell me more"
-            android:textColor="@android:color/white"/>
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            />
     </LinearLayout>
 
 

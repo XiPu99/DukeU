@@ -1,7 +1,11 @@
 package com.xipu.dukeu;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.net.Uri;
+import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -58,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private Button moreInfoButton;
     private Message currentMessage;
     private LinearLayout mLinearLayout;
+    private boolean isFirstTime;
     private final Message next = new Message("Next");
 
 
@@ -66,87 +71,111 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mLinearLayout = findViewById(R.id.linearLayout);
-        nextButton = findViewById(R.id.nextButton);
-        moreInfoButton = findViewById(R.id.moreInfoButton);
-        mRecyclerView = findViewById(R.id.recyclerViewID);
-        mRecyclerView.setHasFixedSize(true); //potential bug
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        allMessagesList = new LinkedList<>();
-        mMessageList = new LinkedList<>();
-        next.setIsBot(false);
-        mRecyclerView.setNestedScrollingEnabled(false);
+        // check if app is launched for the first time
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        if(!prefs.getBoolean("Time", false)){
+            Log.d("DukeU", "Enter first time");
+            mLinearLayout = findViewById(R.id.linearLayout);
+            nextButton = findViewById(R.id.nextButton);
+            moreInfoButton = findViewById(R.id.moreInfoButton);
+            mRecyclerView = findViewById(R.id.recyclerViewID);
+            mRecyclerView.setHasFixedSize(true); //potential bug
+            mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+            allMessagesList = new LinkedList<>();
+            mMessageList = new LinkedList<>();
+            next.setIsBot(false);
+            mRecyclerView.setNestedScrollingEnabled(false);
 
-        ChatBot bot = new ChatBot();
-        mMessageList.add(new Message(bot.greeting(),""));
-        fetchDataFromAPI();
-        mAdapter = new MyAdapter(this, mMessageList);
-        mRecyclerView.setAdapter(mAdapter);
-        Animation slide_up = AnimationUtils.loadAnimation(this, R.anim.slide_up);
-        slide_up.reset();
-        nextButton.startAnimation(slide_up);
-        moreInfoButton.startAnimation(slide_up);
-        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
+            mAdapter = new MyAdapter(this, mMessageList);
+            firstTimeSetUp();
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putBoolean("Time", true);
+            isFirstTime = true;
+            editor.commit();
+        }
 
-                boolean isBottomReached = recyclerView.canScrollVertically(1);
-                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
-                Animation slide_down = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_down);
-                slide_up.reset();
-                slide_down.reset();
+        // execute the following code if the app is not launched for the first time
+        else {
+            Log.d("DukeU", "Not first time");
+            mLinearLayout = findViewById(R.id.linearLayout);
+            nextButton = findViewById(R.id.nextButton);
+            moreInfoButton = findViewById(R.id.moreInfoButton);
+            mRecyclerView = findViewById(R.id.recyclerViewID);
+            mRecyclerView.setHasFixedSize(true); //potential bug
+            mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+            allMessagesList = new LinkedList<>();
+            mMessageList = new LinkedList<>();
+            next.setIsBot(false);
+            mRecyclerView.setNestedScrollingEnabled(false);
 
-                if(!isBottomReached){
+            ChatBot bot = new ChatBot();
+            mMessageList.add(new Message(bot.greeting(), ""));
+            fetchDataFromAPI();
+            mAdapter = new MyAdapter(this, mMessageList);
+            mRecyclerView.setAdapter(mAdapter);
+            Animation slide_up = AnimationUtils.loadAnimation(this, R.anim.slide_up);
+            slide_up.reset();
+            mLinearLayout.startAnimation(slide_up);
+            mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
 
-                    if(!nextButton.isShown()){
-                        Log.d("Anim", "not shown executed.");
-                        mLinearLayout.clearAnimation();
-                        mLinearLayout.startAnimation(slide_up);
-                        mLinearLayout.setVisibility(View.VISIBLE);
+                    boolean isBottomReached = recyclerView.canScrollVertically(1);
+                    Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
+                    Animation slide_down = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_down);
+                    slide_up.reset();
+                    slide_down.reset();
+
+                    if (!isBottomReached) {
+
+                        if (!nextButton.isShown()) {
+                            Log.d("Anim", "not shown executed.");
+                            mLinearLayout.clearAnimation();
+                            mLinearLayout.startAnimation(slide_up);
+                            mLinearLayout.setVisibility(View.VISIBLE);
+                        }
+                        return;
                     }
-                    return;
+
+                    if (dy > 0) {
+                        //scroll down
+                        if (nextButton.isShown()) {
+                            Log.d("Anim", "scrolling down.");
+                            slide_down.setAnimationListener(new Animation.AnimationListener() {
+                                @Override
+                                public void onAnimationStart(Animation animation) {
+                                    //do nothing
+                                }
+
+                                @Override
+                                public void onAnimationEnd(Animation animation) {
+                                    Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
+                                    mLinearLayout.clearAnimation();
+                                    mLinearLayout.startAnimation(slide_up);
+                                }
+
+                                @Override
+                                public void onAnimationRepeat(Animation animation) {
+                                    //do nothing
+                                }
+                            });
+                            mLinearLayout.startAnimation(slide_down);
+                        }
+                    } else if (dy < 0) {
+                        //Scroll up
+                        if (nextButton.isShown()) {
+                            Log.d("Anim", "scrolling up.");
+                            mLinearLayout.clearAnimation();
+                            mLinearLayout.startAnimation(slide_down);
+                            mLinearLayout.setVisibility(View.INVISIBLE);
+                        }
+                    }
+
                 }
 
-                if ( dy>0){
-                    //scroll down
-                    if(nextButton.isShown()){
-                        Log.d("Anim", "scrolling down.");
-                        slide_down.setAnimationListener(new Animation.AnimationListener() {
-                            @Override
-                            public void onAnimationStart(Animation animation) {
-                                //do nothing
-                            }
-
-                            @Override
-                            public void onAnimationEnd(Animation animation) {
-                                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
-                                mLinearLayout.clearAnimation();
-                                mLinearLayout.startAnimation(slide_up);
-                            }
-
-                            @Override
-                            public void onAnimationRepeat(Animation animation) {
-                                //do nothing
-                            }
-                        });
-                        mLinearLayout.startAnimation(slide_down);
-                    }
-                }
-
-                else if(dy<0){
-                    //Scroll up
-                    if (nextButton.isShown()) {
-                        Log.d("Anim", "scrolling up.");
-                        mLinearLayout.clearAnimation();
-                        mLinearLayout.startAnimation(slide_down);
-                        mLinearLayout.setVisibility(View.INVISIBLE);
-                    }
-                }
-
-            }
-
-        });
+            });
+        }
 
     }
 
@@ -214,6 +243,14 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        Message errorMessage1 = new Message("Oops!!!");
+                        Message errorMessage2 = new Message("It seems that I can't connect to Internet. Can you check your WiFi setting?");
+                        mMessageList.add(errorMessage1);
+                        mMessageList.add(errorMessage2);
+                        mAdapter.notifyItemInserted(mMessageList.size()-1);
+                        mLinearLayout.clearAnimation();
+                        nextButton.setVisibility(View.INVISIBLE);
+                        moreInfoButton.setVisibility(View.INVISIBLE);
                         Log.d("DukeU", "There's an error while requesting JSON");
                     }
                 });
@@ -223,20 +260,32 @@ public class MainActivity extends AppCompatActivity {
 
     //on click method for nextButton textview
     public void getNextMessage(View v){
-        if(!allMessagesList.isEmpty()) {
-            currentMessage = allMessagesList.remove();
-            mMessageList.add(next);
-            mMessageList.add(currentMessage);
-        }
-        else{
-            currentMessage = null;
-            nextButton.setVisibility(View.GONE);
-            moreInfoButton.setVisibility(View.GONE);
-            Message test = new Message("You're all caught up! Check back later...");
-            mMessageList.add(test);
+        if(isFirstTime){
+            Message yes = new Message("Yes.");
+            yes.setIsBot(false);
+            mMessageList.add(yes);
+            fetchDataFromAPI();
+            isFirstTime = false;
         }
 
+        else {
 
+
+            if (!allMessagesList.isEmpty()) {
+                currentMessage = allMessagesList.remove();
+                mMessageList.add(next);
+                mMessageList.add(currentMessage);
+            } else {
+                currentMessage = null;
+                nextButton.setVisibility(View.GONE);
+                moreInfoButton.setVisibility(View.GONE);
+                Message test = new Message("You're all caught up! Check back later...");
+                mMessageList.add(test);
+                mAdapter.notifyItemInserted(mMessageList.size() - 1);
+                return;
+            }
+
+        }
         Animation slide_down = AnimationUtils.loadAnimation(this, R.anim.slide_down);
         if(!moreInfoButton.isShown()){
             nextButton.startAnimation(slide_down);
@@ -249,6 +298,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onAnimationEnd(Animation animation) {
+                nextButton.setText("Next");
                 Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
                 if(!moreInfoButton.isShown()) moreInfoButton.setVisibility(View.VISIBLE);
                 mLinearLayout.startAnimation(slide_up);
@@ -281,6 +331,103 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.smoothScrollToPosition(mMessageList.size()-1);
         moreInfoButton.setVisibility(View.GONE);
         mAdapter.notifyItemInserted(mMessageList.size()-1);
+    }
+
+    public void firstTimeSetUp() {
+        Animation slide_up = AnimationUtils.loadAnimation(this, R.anim.slide_up);
+        slide_up.reset();
+        //mLinearLayout.startAnimation(slide_up);
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                boolean isBottomReached = recyclerView.canScrollVertically(1);
+                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
+                Animation slide_down = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_down);
+                slide_up.reset();
+                slide_down.reset();
+
+                if(!isBottomReached){
+
+                    if(!nextButton.isShown()){
+                        Log.d("Anim", "not shown executed.");
+                        mLinearLayout.clearAnimation();
+                        mLinearLayout.startAnimation(slide_up);
+                        mLinearLayout.setVisibility(View.VISIBLE);
+                    }
+                    return;
+                }
+
+                if ( dy > 0){
+                    //scroll down
+                    if(nextButton.isShown()){
+                        Log.d("Anim", "scrolling down.");
+                        slide_down.setAnimationListener(new Animation.AnimationListener() {
+                            @Override
+                            public void onAnimationStart(Animation animation) {
+                                //do nothing
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animation animation) {
+                                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
+                                mLinearLayout.clearAnimation();
+                                mLinearLayout.startAnimation(slide_up);
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animation animation) {
+                                //do nothing
+                            }
+                        });
+                        mLinearLayout.startAnimation(slide_down);
+                    }
+                }
+
+                else if(dy<0){
+                    //Scroll up
+                    if (nextButton.isShown()) {
+                        Log.d("Anim", "scrolling up.");
+                        mLinearLayout.clearAnimation();
+                        mLinearLayout.startAnimation(slide_down);
+                        mLinearLayout.setVisibility(View.INVISIBLE);
+                    }
+                }
+            }
+        });
+        mLinearLayout.setVisibility(View.GONE);
+        mAdapter = new MyAdapter(this, mMessageList);
+        mRecyclerView.setAdapter(mAdapter);
+        mMessageList.add(new Message("Hey there."));
+        mAdapter.notifyItemInserted(mMessageList.size()-1);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mMessageList.add(new Message("Thanks for trying my new app! It's like a conversation. "));
+                mAdapter.notifyItemInserted(mMessageList.size()-1);
+            }
+        }, 1000);
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mMessageList.add(new Message("I send you messages, and you can respond below by tapping the buttons that appear. Are you ready to get started?"));
+                mAdapter.notifyItemInserted(mMessageList.size()-1);
+            }
+        }, 2500);
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
+                mLinearLayout.setVisibility(View.VISIBLE);
+                mLinearLayout.startAnimation(slide_up);
+                nextButton.setText("Yes.");
+                nextButton.setVisibility(View.VISIBLE);
+                moreInfoButton.setVisibility(View.GONE);
+            }
+        }, 3300);
     }
 
 
