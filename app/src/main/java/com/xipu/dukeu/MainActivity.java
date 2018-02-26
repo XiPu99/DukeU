@@ -19,6 +19,7 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -62,7 +63,9 @@ public class MainActivity extends AppCompatActivity {
     private Button moreInfoButton;
     private Message currentMessage;
     private LinearLayout mLinearLayout;
+    private Message firstMessage;
     private boolean isFirstTime;
+    private boolean allCaughtUp;
     private final Message next = new Message("Next");
 
 
@@ -176,7 +179,108 @@ public class MainActivity extends AppCompatActivity {
 
             });
         }
+    }
 
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        updateMessageList();
+        if(allCaughtUp){
+            if (!allMessagesList.isEmpty()){
+                Message welcome = new Message("Welcome Back.");
+                mMessageList.add(welcome);
+                mAdapter.notifyItemInserted(mMessageList.size()-1);
+                currentMessage = allMessagesList.remove();
+                mMessageList.add(currentMessage);
+                mAdapter.notifyItemInserted(mMessageList.size()-1);
+                nextButton.setVisibility(View.VISIBLE);
+                moreInfoButton.setVisibility(View.VISIBLE);
+                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
+                mLinearLayout.startAnimation(slide_up);
+            }
+            else{
+                Message soon = new Message("Sorry, my fellow Dukie. Nothing interesting happened after you left.");
+                mMessageList.add(soon);
+                mAdapter.notifyItemInserted(mMessageList.size()-1);
+            }
+        }
+    }
+
+
+    private void updateMessageList(){
+        final Message oldFirstMessage = firstMessage;
+        String url = baseURL + API_KEY;
+        RequestQueue queue = Volley.newRequestQueue(this);//using Google volley library
+
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        final Calendar now = Calendar.getInstance();
+        int year = now.get(Calendar.YEAR);
+        int month = now.get(Calendar.MONTH)+1;
+        int day = now.get(Calendar.DAY_OF_MONTH);
+
+        final String todayDate = String.valueOf(year) + "-" + String.valueOf(month) + "-" +String.valueOf(day);
+
+        //using Google volley library to fetch a JSON array from API
+        JsonArrayRequest jsArrayRequest = new JsonArrayRequest
+                (Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        for(int i = 0; i < response.length(); i++) {
+
+                            try {
+
+
+                                JSONObject newMessage = response.getJSONObject(i);
+                                String date = newMessage.getString("date_posted").substring(0, date_format_string_length);
+                                try {
+                                    //if the message is posted on today, add it to mMessageList
+                                    if (sdf.parse(date).compareTo(sdf.parse(todayDate)) == 0||sdf.parse(todayDate).before(sdf.parse(date))) {
+                                        Message nMessage = new Message(newMessage.getString("title"));
+                                        nMessage.setUrl(newMessage.getString("source_url"));
+                                        if(nMessage.compare(oldFirstMessage)!=0 && i == 0){
+                                            allMessagesList.add(nMessage);
+                                            firstMessage = nMessage;
+                                        }
+                                        else if (nMessage.compare(oldFirstMessage) == 0) {
+                                            break;
+                                        } else {
+                                            allMessagesList.add(nMessage);
+                                        }
+                                    }
+                                    else{
+                                        break; //if the message fetched was posted on an earlier day, stop fetching data
+                                    }
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Message errorMessage1 = new Message("Oops!!!");
+                        Message errorMessage2 = new Message("It seems that I can't connect to Internet. Can you check your WiFi setting?");
+                        mMessageList.add(errorMessage1);
+                        mMessageList.add(errorMessage2);
+                        mAdapter.notifyItemInserted(mMessageList.size()-1);
+                        mLinearLayout.clearAnimation();
+                        nextButton.setVisibility(View.INVISIBLE);
+                        moreInfoButton.setVisibility(View.INVISIBLE);
+                        Log.d("DukeU", "There's an error while requesting JSON");
+                    }
+                });
+
+        queue.add(jsArrayRequest);
     }
 
 
@@ -215,6 +319,7 @@ public class MainActivity extends AppCompatActivity {
                                         nMessage.setUrl(newMessage.getString("source_url"));
                                         if(i==0){
                                             currentMessage = nMessage;
+                                            firstMessage = nMessage;
                                             mMessageList.add(nMessage);
                                             mAdapter.notifyItemInserted(mMessageList.size()-1);
                                         }
@@ -275,13 +380,14 @@ public class MainActivity extends AppCompatActivity {
                 currentMessage = allMessagesList.remove();
                 mMessageList.add(next);
                 mMessageList.add(currentMessage);
+                allCaughtUp = false;
             } else {
-                currentMessage = null;
                 nextButton.setVisibility(View.GONE);
                 moreInfoButton.setVisibility(View.GONE);
                 Message test = new Message("You're all caught up! Check back later...");
                 mMessageList.add(test);
                 mAdapter.notifyItemInserted(mMessageList.size() - 1);
+                allCaughtUp = true;
                 return;
             }
 
@@ -429,7 +535,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }, 3300);
     }
-
 
 }
 

@@ -61,4 +61,8 @@ public class Message {
     public void setUrl(String url) {
         this.url = url;
     }
+
+    public int compare(Message m){
+        return this.getTitle().compareTo(m.getTitle());
+    }
 }
