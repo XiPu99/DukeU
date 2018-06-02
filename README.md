@@ -5,4 +5,4 @@ This app is my personal project that I work on for fun. As a current Duke studen
 
 I really enjoy the process of making it and I hope you find this app helpful. If you have any suggestion to make or any bugs to report, I am happy to hear them and please send them to the email address listed on this page. 
 
-Go Duke!
+This app is currently available on Google Play Store. The link is https://play.google.com/store/apps/details?id=com.xipu.dukeu
