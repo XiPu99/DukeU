@@ -239,6 +239,7 @@ public class MainActivity extends AppCompatActivity {
                                         Message nMessage = new Message(newMessage.getString("title"));
                                         nMessage.setUrl(newMessage.getString("source_url"));
                                         if(nMessage.compare(oldFirstMessage)!=0 && i == 0){
+                                            Log.d("message", nMessage.getTitle());
                                             allMessagesList.add(nMessage);
                                             firstMessage = nMessage;
                                         }
@@ -306,11 +307,12 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONArray response) {
                         for(int i = 0; i < response.length(); i++) {
-
+                            Log.d("Loop", "Loop entered");
                             try {
 
 
                                 JSONObject newMessage = response.getJSONObject(i);
+                                Log.d("Loop", newMessage.getString("title"));
                                 String date = newMessage.getString("date_posted").substring(0, date_format_string_length);
                                 try {
                                     //if the message is posted on today, add it to mMessageList
