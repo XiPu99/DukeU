@@ -26,6 +26,8 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
@@ -68,14 +70,21 @@ public class MainActivity extends AppCompatActivity {
     private boolean allCaughtUp;
     private final Message next = new Message("Next");
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+        //testing
+        simpleRequest();
+        getTodayDate();
+
+
+
         // check if app is launched for the first time
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
         if(!prefs.getBoolean("Time", false)){
             Log.d("DukeU", "Enter first time");
             mLinearLayout = findViewById(R.id.linearLayout);
@@ -181,6 +190,253 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // the following code will be executed when users first launched the app
+    public void firstTimeSetUp() {
+        Animation slide_up = AnimationUtils.loadAnimation(this, R.anim.slide_up);
+        slide_up.reset();
+        //mLinearLayout.startAnimation(slide_up);
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                boolean isBottomReached = recyclerView.canScrollVertically(1);
+                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
+                Animation slide_down = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_down);
+                slide_up.reset();
+                slide_down.reset();
+
+                if(!isBottomReached){
+
+                    if(!nextButton.isShown()){
+                        Log.d("Anim", "not shown executed.");
+                        mLinearLayout.clearAnimation();
+                        mLinearLayout.startAnimation(slide_up);
+                        mLinearLayout.setVisibility(View.VISIBLE);
+                    }
+                    return;
+                }
+
+                if ( dy > 0){
+                    //scroll down
+                    if(nextButton.isShown()){
+                        Log.d("Anim", "scrolling down.");
+                        slide_down.setAnimationListener(new Animation.AnimationListener() {
+                            @Override
+                            public void onAnimationStart(Animation animation) {
+                                //do nothing
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animation animation) {
+                                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
+                                mLinearLayout.clearAnimation();
+                                mLinearLayout.startAnimation(slide_up);
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animation animation) {
+                                //do nothing
+                            }
+                        });
+                        mLinearLayout.startAnimation(slide_down);
+                    }
+                }
+
+                else if(dy<0){
+                    //Scroll up
+                    if (nextButton.isShown()) {
+                        Log.d("Anim", "scrolling up.");
+                        mLinearLayout.clearAnimation();
+                        mLinearLayout.startAnimation(slide_down);
+                        mLinearLayout.setVisibility(View.INVISIBLE);
+                    }
+                }
+            }
+        });
+        mLinearLayout.setVisibility(View.GONE);
+        mAdapter = new MyAdapter(this, mMessageList);
+        mRecyclerView.setAdapter(mAdapter);
+        mMessageList.add(new Message("Hey there."));
+        mAdapter.notifyItemInserted(mMessageList.size()-1);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mMessageList.add(new Message("Thanks for trying my new app! It's like a conversation. "));
+                mAdapter.notifyItemInserted(mMessageList.size()-1);
+            }
+        }, 1000);
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mMessageList.add(new Message("I send you messages, and you can respond below by tapping the buttons that appear. Are you ready to get started?"));
+                mAdapter.notifyItemInserted(mMessageList.size()-1);
+            }
+        }, 2500);
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
+                mLinearLayout.setVisibility(View.VISIBLE);
+                mLinearLayout.startAnimation(slide_up);
+                nextButton.setText("Yes.");
+                nextButton.setVisibility(View.VISIBLE);
+                moreInfoButton.setVisibility(View.GONE);
+            }
+        }, 3300);
+    }
+
+    private void simpleRequest(){
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url = baseURL + API_KEY;
+
+        JsonArrayRequest jsonObjectRequest = new JsonArrayRequest
+                (Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+
+                    // onResponse is executed when json request is successful
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        Log.d("Test", "Response: " + response.toString());
+
+                        // traverse each JSONObject in JSONArray
+                        for(int i = 0; i < response.length(); i++){
+                            try {
+                                JSONObject message = response.getJSONObject(i);
+                                // get the date value for the JSONObject
+                                String date = message.getString("date_posted").substring(0, date_format_string_length);
+
+
+
+
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+
+
+
+                    }
+
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("Test", "AN ERROR OCCURRED" + error.toString());
+                    }
+                });
+
+
+        queue.add(jsonObjectRequest);
+
+    }
+
+
+    private void filterMessagesBasedOnTime(JSONArray response){
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // set up the date format
+        String todayDate = getTodayDate();
+
+    }
+
+    // a method that returns today's date as a string('Year-Month-Day')
+    private String getTodayDate(){
+        Calendar now = Calendar.getInstance();
+        int year = now.get(Calendar.YEAR);
+        int month = now.get(Calendar.MONTH+1); // we need to plus one here to get the actual month because the month values start from 0
+        int day = now.get(Calendar.DAY_OF_MONTH);
+        Log.d("Test", "Today's date: " + month + " " + day);
+
+        // concatenate each field with '-' and return the result
+        return String.valueOf(year) + "-" + String.valueOf(month) + "-" +String.valueOf(day);
+    }
+
+    /**
+     *  add all messages fetched from the Internet to linkedlist allMessagesList
+     */
+    private void fetchDataFromAPI(){
+        String url = baseURL + API_KEY;
+        RequestQueue queue = Volley.newRequestQueue(this);//using Google volley library
+
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        final Calendar now = Calendar.getInstance();
+        int year = now.get(Calendar.YEAR);
+        int month = now.get(Calendar.MONTH)+1;
+        int day = now.get(Calendar.DAY_OF_MONTH);
+
+        final String todayDate = String.valueOf(year) + "-" + String.valueOf(month) + "-" +String.valueOf(day);
+
+        //using Google volley library to fetch a JSON array from API
+        JsonArrayRequest jsArrayRequest = new JsonArrayRequest
+                (Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        for(int i = 0; i < response.length(); i++) {
+                            Log.d("Loop", "Loop entered");
+                            try {
+
+
+                                JSONObject newMessage = response.getJSONObject(i);
+                                Log.d("Loop", newMessage.getString("title"));
+                                String date = newMessage.getString("date_posted").substring(0, date_format_string_length);
+//                                try {
+
+
+                                    //if the message is posted on today, add it to mMessageList
+//                                    if (sdf.parse(date).compareTo(sdf.parse(todayDate)) == 0||sdf.parse(todayDate).before(sdf.parse(date))) {
+                                        Message nMessage = new Message(newMessage.getString("title"), newMessage.getString("body"));
+                                        nMessage.setUrl(newMessage.getString("source_url"));
+                                        if(i==0){
+                                            currentMessage = nMessage;
+                                            firstMessage = nMessage;
+                                            mMessageList.add(nMessage);
+                                            mAdapter.notifyItemInserted(mMessageList.size()-1);
+                                        }
+                                        else {
+                                            allMessagesList.add(nMessage);
+                                        }
+
+//                                    }
+//                                    else{
+//                                        break; //if the message fetched was posted on an earlier day, stop fetching data
+//                                    }
+//                                } catch (ParseException e) {
+//                                    e.printStackTrace();
+//                                }
+
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Message errorMessage1 = new Message("Oops!!!");
+                        Message errorMessage2 = new Message("It seems that I can't connect to Internet. Can you check your WiFi setting?");
+                        mMessageList.add(errorMessage1);
+                        mMessageList.add(errorMessage2);
+                        mAdapter.notifyItemInserted(mMessageList.size()-1);
+                        mLinearLayout.clearAnimation();
+                        nextButton.setVisibility(View.INVISIBLE);
+                        moreInfoButton.setVisibility(View.INVISIBLE);
+                        Log.d("DukeU", "There's an error while requesting JSON");
+                    }
+                });
+
+        queue.add(jsArrayRequest);
+    }
+
+
+
+    // executed each time when users reenter the app after launching it
     @Override
     protected void onRestart() {
         super.onRestart();
@@ -285,85 +541,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    /**
-     *  add all messages fetched from the Internet to linkedlist allMessagesList
-     */
-    private void fetchDataFromAPI(){
-        String url = baseURL + API_KEY;
-        RequestQueue queue = Volley.newRequestQueue(this);//using Google volley library
-
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        final Calendar now = Calendar.getInstance();
-        int year = now.get(Calendar.YEAR);
-        int month = now.get(Calendar.MONTH)+1;
-        int day = now.get(Calendar.DAY_OF_MONTH);
-
-        final String todayDate = String.valueOf(year) + "-" + String.valueOf(month) + "-" +String.valueOf(day);
-
-        //using Google volley library to fetch a JSON array from API
-        JsonArrayRequest jsArrayRequest = new JsonArrayRequest
-                (Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
-
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        for(int i = 0; i < response.length(); i++) {
-                            Log.d("Loop", "Loop entered");
-                            try {
-
-
-                                JSONObject newMessage = response.getJSONObject(i);
-                                Log.d("Loop", newMessage.getString("title"));
-                                String date = newMessage.getString("date_posted").substring(0, date_format_string_length);
-                                try {
-                                    //if the message is posted on today, add it to mMessageList
-                                    if (sdf.parse(date).compareTo(sdf.parse(todayDate)) == 0||sdf.parse(todayDate).before(sdf.parse(date))) {
-                                        Message nMessage = new Message(newMessage.getString("title"), newMessage.getString("body"));
-                                        nMessage.setUrl(newMessage.getString("source_url"));
-                                        if(i==0){
-                                            currentMessage = nMessage;
-                                            firstMessage = nMessage;
-                                            mMessageList.add(nMessage);
-                                            mAdapter.notifyItemInserted(mMessageList.size()-1);
-                                        }
-                                        else {
-                                            allMessagesList.add(nMessage);
-                                        }
-
-                                    }
-                                    else{
-                                        break; //if the message fetched was posted on an earlier day, stop fetching data
-                                    }
-                                } catch (ParseException e) {
-                                    e.printStackTrace();
-                                }
-
-
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-
-
-                        }
-
-                    }
-                }, new Response.ErrorListener() {
-
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Message errorMessage1 = new Message("Oops!!!");
-                        Message errorMessage2 = new Message("It seems that I can't connect to Internet. Can you check your WiFi setting?");
-                        mMessageList.add(errorMessage1);
-                        mMessageList.add(errorMessage2);
-                        mAdapter.notifyItemInserted(mMessageList.size()-1);
-                        mLinearLayout.clearAnimation();
-                        nextButton.setVisibility(View.INVISIBLE);
-                        moreInfoButton.setVisibility(View.INVISIBLE);
-                        Log.d("DukeU", "There's an error while requesting JSON");
-                    }
-                });
-
-        queue.add(jsArrayRequest);
-    }
 
     //on click method for nextButton textview
     public void getNextMessage(View v){
@@ -441,102 +618,7 @@ public class MainActivity extends AppCompatActivity {
         mAdapter.notifyItemInserted(mMessageList.size()-1);
     }
 
-    public void firstTimeSetUp() {
-        Animation slide_up = AnimationUtils.loadAnimation(this, R.anim.slide_up);
-        slide_up.reset();
-        //mLinearLayout.startAnimation(slide_up);
-        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
 
-                boolean isBottomReached = recyclerView.canScrollVertically(1);
-                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
-                Animation slide_down = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_down);
-                slide_up.reset();
-                slide_down.reset();
-
-                if(!isBottomReached){
-
-                    if(!nextButton.isShown()){
-                        Log.d("Anim", "not shown executed.");
-                        mLinearLayout.clearAnimation();
-                        mLinearLayout.startAnimation(slide_up);
-                        mLinearLayout.setVisibility(View.VISIBLE);
-                    }
-                    return;
-                }
-
-                if ( dy > 0){
-                    //scroll down
-                    if(nextButton.isShown()){
-                        Log.d("Anim", "scrolling down.");
-                        slide_down.setAnimationListener(new Animation.AnimationListener() {
-                            @Override
-                            public void onAnimationStart(Animation animation) {
-                                //do nothing
-                            }
-
-                            @Override
-                            public void onAnimationEnd(Animation animation) {
-                                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
-                                mLinearLayout.clearAnimation();
-                                mLinearLayout.startAnimation(slide_up);
-                            }
-
-                            @Override
-                            public void onAnimationRepeat(Animation animation) {
-                                //do nothing
-                            }
-                        });
-                        mLinearLayout.startAnimation(slide_down);
-                    }
-                }
-
-                else if(dy<0){
-                    //Scroll up
-                    if (nextButton.isShown()) {
-                        Log.d("Anim", "scrolling up.");
-                        mLinearLayout.clearAnimation();
-                        mLinearLayout.startAnimation(slide_down);
-                        mLinearLayout.setVisibility(View.INVISIBLE);
-                    }
-                }
-            }
-        });
-        mLinearLayout.setVisibility(View.GONE);
-        mAdapter = new MyAdapter(this, mMessageList);
-        mRecyclerView.setAdapter(mAdapter);
-        mMessageList.add(new Message("Hey there."));
-        mAdapter.notifyItemInserted(mMessageList.size()-1);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                mMessageList.add(new Message("Thanks for trying my new app! It's like a conversation. "));
-                mAdapter.notifyItemInserted(mMessageList.size()-1);
-            }
-        }, 1000);
-
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                mMessageList.add(new Message("I send you messages, and you can respond below by tapping the buttons that appear. Are you ready to get started?"));
-                mAdapter.notifyItemInserted(mMessageList.size()-1);
-            }
-        }, 2500);
-
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Animation slide_up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
-                mLinearLayout.setVisibility(View.VISIBLE);
-                mLinearLayout.startAnimation(slide_up);
-                nextButton.setText("Yes.");
-                nextButton.setVisibility(View.VISIBLE);
-                moreInfoButton.setVisibility(View.GONE);
-            }
-        }, 3300);
-    }
 
 }
 
